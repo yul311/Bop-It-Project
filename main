@@ -1,0 +1,80 @@
+//Notes:
+//Do I need to initalize the lights to low? Or should we just use a PDR (same question for all inputs for functions)
+
+const int startGamePin = 1;   //picking 1 for random pin we can decide later. Also would need to initialize pins for all the sensors and rotary encoder etc.
+const int greenLEDPin = 1;
+const int redLEDPin = 1;
+const int audioPin = 1;
+
+int counter = 0;
+bool success = false;
+int timelimit = 1000;
+
+void setup() {
+  pinMode(startGamePin, INPUT);
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(redLEDPin, OUTPUT);
+  pinMode(audioPin, OUTPUT);
+  
+  Serial.begin(9600);
+}
+
+void loop() {
+  while (digitalRead(startGamePin) == LOW) {} //this would need to be the button to start the game, the button to power the circuit I think is just Electrical
+
+  while (true) {
+    int randomAction = random(0, 3);
+
+    switch (randomAction) {
+      case 0:
+        playAudioCue("Saw");
+        success = sawTask(timelimit);
+        break;
+      case 1:
+        playAudioCue("Screwdriver");
+        success = screwdriverTask(timelimit);
+        break;
+      case 2:
+        playAudioCue("Hammer");
+        success = hammerTask(timelimit);
+        break;
+    }
+
+    if (success) {
+      counter++;
+      digitalWrite(greenLEDPin, HIGH);
+      digitalWrite(redLEDPin, LOW);
+    } else {
+      digitalWrite(redLEDPin, HIGH);
+      digitalWrite(greenLEDPin, LOW);
+      break;
+    }
+
+    delay(500); //not sure if I need this delay
+
+    if (counter == 99) {
+      break;
+    }
+  }
+
+  Serial.print("Final Score: ");
+  Serial.println(counter);
+  playAudioCue("Game Over");
+  delay(1000); 
+}
+
+void playAudioCue(String action) {
+   // Logic for AudioCue
+}
+
+bool sawTask(int timelimit) {
+  // Logic for saw task
+}
+
+bool screwdriverTask(int timelimit) {
+  // Logic for screwdriver task
+}
+
+bool hammerTask(int timelimit) {
+  // Logic for hammer task
+}
