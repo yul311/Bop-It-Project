@@ -1,58 +1,87 @@
+#include <SoftwareSerial.h>
+#include <DFRobotDFPlayerMini.h>
+
+SoftwareSerial mySerial(0, 1);
+DFRobotDFPlayerMini myDFPlayer;
+
 // Pin Definitions
-const int encoderPinA = 4;   // CLK pin on KY-040
-const int encoderPinB = 5;   // DT pin on KY-040
-const int ledPin = 6;        // LED pin to indicate success
-const int startGamePin = 1;  // Start button
-const int greenLEDPin = 7;   // Green LED for success
-const int redLEDPin = 8;     // Red LED for failure
-const int audioPin = 9;      // Audio output
-const int beamPin = 10;      // Beam sensor pin
-const int hammerButton = 1;
+const int startGamePin = ;
+const int greenLEDPin = ;
+const int redLEDPin = ;
+
+// SAW
+const int threshold = 100;
+const int lightSensorPin = ;
+// 
+
+//ScrewDriver
+const int encoderPinA = ;
+const int encoderPinB= ;
+
+//hammer
+const int hammerButton = ;
+//
+
+//Sound
+
+//
 
 int counter = 0;
 bool success = false;
-int timelimit = 1000; // 1-second time limit
+int timelimit = 2000; // 1-second time limit
 
-void setup() {
+void setup()
+{
   pinMode(startGamePin, INPUT);
   pinMode(greenLEDPin, OUTPUT);
   pinMode(redLEDPin, OUTPUT);
-  pinMode(audioPin, OUTPUT);
-  pinMode(beamPin, INPUT);
+  pinMode(lightSensorPin, INPUT);
   pinMode(encoderPinA, INPUT);
   pinMode(encoderPinB, INPUT);
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW);
 
-  Serial.begin(9600);
+  digitalWrite(greenLEDPin, LOW);
+  digitalWrite(redLEDPin, LOW);
+
+  mySerial.begin(9600);
+  myDFPlayer.begin(mySerial); // set Serial for DFPlayer-mini mp3 module
+  myDFPlayer.volume(20);
 }
 
-void loop() {
-  while (digitalRead(startGamePin) == LOW) {} // Wait for the game start button
+void loop()
+{
+  while (digitalRead(startGamePin) == LOW)
+  {
+  } // Wait for the game start button
 
-  while (true) {
+  while (true)
+  {
+
     int randomAction = random(0, 3);
 
-    switch (randomAction) {
-      case 0:
-        playAudioCue("Saw");
-        success = sawTask(timelimit);
-        break;
-      case 1:
-        playAudioCue("Screwdriver");
-        success = screwdriverTask(timelimit);
-        break;
-      case 2:
-        playAudioCue("Hammer");
-        success = hammerTask(timelimit);
-        break;
+    switch (randomAction)
+    {
+    case 0:
+      playAudioCue(1, 4);
+      success = sawTask(timelimit);
+      break;
+    case 1:
+      playAudioCue(2, 7);
+      success = screwdriverTask(timelimit);
+      break;
+    case 2:
+      playAudioCue(3, 7);
+      success = hammerTask(timelimit);
+      break;
     }
 
-    if (success) {
+    if (success)
+    {
       counter++;
       digitalWrite(greenLEDPin, HIGH);
       digitalWrite(redLEDPin, LOW);
-    } else {
+    }
+    else
+    {
       digitalWrite(redLEDPin, HIGH);
       digitalWrite(greenLEDPin, LOW);
       break;
@@ -60,49 +89,69 @@ void loop() {
 
     delay(500);
 
-    if (counter == 99) {
+    digitalWrite(redLEDPin, LOW);
+    digitalWrite(greenLEDPin, LOW);
+
+    if (counter == 99)
+    {
       break;
     }
   }
 
   Serial.print("Final Score: ");
   Serial.println(counter);
-  playAudioCue("Game Over");
-  delay(1000); 
+  // playAudioCue(3, 7); //going to be game over.
+  delay(1000);
 }
 
-void playAudioCue(String action) {
-  // Logic for audio cue based on action
+void playAudioCue(int trackNumber, int delayTime)
+{
+  myDFPlayer.play(trackNumber);
+  delay(delayTime);
 }
 
-bool sawTask(int timelimit) {
+bool sawTask(int timelimit)
+{
   unsigned long timer = millis();
-  while (millis() - timer < timelimit) {
-    if (digitalRead(beamPin) == LOW) { // Check if beam is broken
+  while (millis() - timer < timelimit)
+  {
+    int sensorValue = analogRead(lightSensorPin);
+
+    // If the sensor value is below the threshold (saw is blocking the light)
+    if (sensorValue < threshold)
+    {
       return true;
     }
+    delay(1); // Small delay between readings
   }
   return false;
 }
 
-bool screwdriverTask(int timelimit) {
+bool screwdriverTask(int timelimit)
+{
   unsigned long timer = millis();
   int encoderPosition = 0;
   int lastEncoderPinA = LOW;
 
-  while (millis() - timer < timelimit) {
+  while (millis() - timer < timelimit)
+  {
     int currentEncoderPinA = digitalRead(encoderPinA);
 
     // Detect rotation (rising edge of CLK)
-    if (currentEncoderPinA != lastEncoderPinA && currentEncoderPinA == HIGH) {
-      if (digitalRead(encoderPinB) != currentEncoderPinA) {
-        encoderPosition++;  // Clockwise rotation
-      } else {
-        encoderPosition--;  // Counterclockwise rotation
+    if (currentEncoderPinA != lastEncoderPinA && currentEncoderPinA == HIGH)
+    {
+      if (digitalRead(encoderPinB) != currentEncoderPinA)
+      {
+        encoderPosition++; // Clockwise rotation
+      }
+      else
+      {
+        encoderPosition--; // Counterclockwise rotation
       }
 
-      if (encoderPosition >= 10) {
-        return true;                 
+      if (encoderPosition >= 10)
+      {
+        return true;
       }
     }
     lastEncoderPinA = currentEncoderPinA;
@@ -110,10 +159,13 @@ bool screwdriverTask(int timelimit) {
   return false;
 }
 
-bool hammerTask(int timelimit) {
+bool hammerTask(int timelimit)
+{
   unsigned long timer = millis();
-  while (millis() - timer < timelimit) {
-    if (digitalRead(hammerButton) == HIGH) { // Check if beam is broken
+  while (millis() - timer < timelimit)
+  {
+    if (digitalRead(hammerButton) == HIGH)
+    { // Check if beam is broken
       return true;
     }
   }
