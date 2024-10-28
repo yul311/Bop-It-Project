@@ -5,6 +5,8 @@ const int startGamePin = 1;   //picking 1 for random pin we can decide later. Al
 const int greenLEDPin = 1;
 const int redLEDPin = 1;
 const int audioPin = 1;
+const int lightSensorPin = 1;
+const int threshold = 100;
 
 int counter = 0;
 bool success = false;
@@ -68,7 +70,21 @@ void playAudioCue(String action) {
 }
 
 bool sawTask(int timelimit) {
-  // Logic for saw task
+  int sensorValue;
+  unsigned long startTime = millis(); // Get the current time
+
+  while (millis() - startTime < timelimit) { // Run for the time limit
+    sensorValue = analogRead(lightSensorPin);
+    
+    // Check if the sensor value is below the threshold
+    if (sensorValue < threshold) {
+      return true; // Task succeeded
+    }
+
+    delay(10); // Small delay between readings
+  }
+
+  return false; // Task failed if time limit is reached
 }
 
 bool screwdriverTask(int timelimit) {
