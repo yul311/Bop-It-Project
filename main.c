@@ -5,21 +5,21 @@ SoftwareSerial mySerial(0, 1);
 DFRobotDFPlayerMini myDFPlayer;
 
 // Pin Definitions
-const int startGamePin = ;
-const int greenLEDPin = ;
-const int redLEDPin = ;
+const int startGamePin = 6;
+const int greenLEDPin = 8;
+const int redLEDPin = 7;
 
 // SAW
 const int threshold = 100;
-const int lightSensorPin = ;
+const int lightSensorPin = A0;
 // 
 
 //ScrewDriver
-const int encoderPinA = ;
-const int encoderPinB= ;
+const int encoderPinA = 3;
+const int encoderPinB= 4;
 
 //hammer
-const int hammerButton = ;
+const int hammerButton = 9;
 //
 
 //Sound
