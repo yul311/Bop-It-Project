@@ -1,7 +1,7 @@
 #include <SoftwareSerial.h>
 #include <DFRobotDFPlayerMini.h>
 
-SoftwareSerial mySerial(0, 1);  
+SoftwareSerial mySerial(9, 10);  
 DFRobotDFPlayerMini myDFPlayer;
 
 // Pin Definitions
@@ -10,15 +10,14 @@ const int greenLEDPin = 7;
 const int redLEDPin = 8;
 
 // SAW
-const int threshold = 100;
-const int lightSensorPin = A0;
+const int lightSensorPin = 5;
 
 // Screwdriver
 const int encoderPinA = 3;
 const int encoderPinB = 4;
 
 // Hammer
-const int hammerButton = 9;
+const int hammerButton = 2;
 
 int counter = 0;
 bool success = false;
@@ -61,15 +60,15 @@ void loop()
 
     switch (randomAction) {
       case 0:
-        playAudioCue(1, 4000);
+        playAudioCue(1);
         success = sawTask(timelimit);
         break;
       case 1:
-        playAudioCue(2, 7000);
+        playAudioCue(2);
         success = screwdriverTask(timelimit);
         break;
       case 2:
-        playAudioCue(3, 7000);
+        playAudioCue(3);
         success = hammerTask(timelimit);
         break;
     }
@@ -78,18 +77,15 @@ void loop()
       counter++;
       digitalWrite(greenLEDPin, HIGH);
       digitalWrite(redLEDPin, LOW);
-      delay(500);  
+      delay(1000);  
+      digitalWrite(greenLEDPin, LOW);
     } else {
       digitalWrite(redLEDPin, HIGH);
       digitalWrite(greenLEDPin, LOW);
-      delay(1000);  
+      delay(1000); 
+      digitalWrite(redLEDPin, LOW); 
       break;
     }
-
-    
-    digitalWrite(greenLEDPin, LOW);
-    digitalWrite(redLEDPin, LOW);
-    success = false; 
 
     if (counter == 99) {
       break;
@@ -100,25 +96,27 @@ void loop()
 
   Serial.print("Final Score: ");
   Serial.println(counter);
+
+  playAudioCue(4);
   
   delay(1000); 
 }
 
-void playAudioCue(int trackNumber, int delayTime)
+void playAudioCue(int trackNumber)
 {
   myDFPlayer.play(trackNumber);
-  delay(delayTime);
+
+  // Wait until the track is finished
+  delay(3000);
 }
 
 bool sawTask(int timelimit)
 {
   unsigned long timer = millis();
   while (millis() - timer < timelimit) {
-    int sensorValue = analogRead(lightSensorPin);
-    if (sensorValue < threshold) {
+    if (digitalRead(lightSensorPin) == LOW) {
       return true;
     }
-    delay(1);
   }
   return false;
 }
