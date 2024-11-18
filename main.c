@@ -1,7 +1,7 @@
 #include <SoftwareSerial.h>
 #include <DFRobotDFPlayerMini.h>
 
-SoftwareSerial mySerial(9, 10);
+SoftwareSerial mySerial(10, 9);  
 DFRobotDFPlayerMini myDFPlayer;
 
 // Pin Definitions
@@ -23,8 +23,9 @@ const int hammerButton = 2;
 const int randomSeedPin = A0;
 
 int counter = 0;
-bool success = false;
-int timelimit = 3500;
+bool success = true;
+int timelimit = 5000;
+
 
 void setup()
 {
@@ -39,19 +40,19 @@ void setup()
   digitalWrite(greenLEDPin, LOW);
   digitalWrite(redLEDPin, LOW);
 
-  // Initialize serial communication for the DFPlayer
-  if (!myDFPlayer.begin(mySerial))
-  {
-    Serial.println("DFPlayer Mini initialization failed!");
-    while (true)
-      ;
-  }
-  else
-  {
+  mySerial.begin(9600);
 
-    myDFPlayer.begin(mySerial);
-    myDFPlayer.volume(20);
+ // Initialize serial communication for the DFPlayer
+  if (!myDFPlayer.begin(mySerial)) {
+    Serial.println("DFPlayer Mini initialization failed!");
+    while (true);
   }
+  else{
+
+  myDFPlayer.begin(mySerial);  // Set output to SD card
+  myDFPlayer.volume(30);
+  }
+
 
   // Initialize random seed based on noise from analog pin
   randomSeed(analogRead(randomSeedPin));
@@ -59,43 +60,38 @@ void setup()
 
 void loop()
 {
-  while (digitalRead(startGamePin) == LOW)
-  {
-  }
+
+  while(success == true){
 
   counter = 0;
+  int timelimit = 3500;
 
-  while (true)
-  {
-    int randomAction = random(0, 3); // Choose a random task
+  while (true) {
+    int randomAction = random(0, 3);  // Choose a random task
 
-    switch (randomAction)
-    {
-    case 0:
-      playAudioCue(1); // Audio cue for saw task
-      success = sawTask(timelimit);
-      break;
-    case 1:
-      playAudioCue(2); // Audio cue for screwdriver task
-      success = screwdriverTask(timelimit);
-      break;
-    case 2:
-      playAudioCue(3); // Audio cue for hammer task
-      success = hammerTask(timelimit);
-      break;
+    switch (randomAction) {
+      case 0:
+        playAudioCue(1);  // Audio cue for saw task
+        success = sawTask(timelimit);
+        break;
+      case 1:
+        playAudioCue(2);  // Audio cue for screwdriver task
+        success = screwdriverTask(timelimit);
+        break;
+      case 2:
+        playAudioCue(3);  // Audio cue for hammer task
+        success = hammerTask(timelimit);
+        break;
     }
 
-    if (success)
-    {
+    if (success) {
       counter++;
       digitalWrite(greenLEDPin, HIGH);
       digitalWrite(redLEDPin, LOW);
-      timelimit *= .95;
+      timelimit *=.95;
       delay(1000);
       digitalWrite(greenLEDPin, LOW);
-    }
-    else
-    {
+    } else {
       digitalWrite(redLEDPin, HIGH);
       digitalWrite(greenLEDPin, LOW);
       delay(1000);
@@ -103,19 +99,19 @@ void loop()
       break;
     }
 
-    if (counter == 99)
-    {
+    if (counter == 99) {
       break;
     }
 
     delay(500);
   }
 
-  // Play final audio cue based on the score
+  //Play final audio cue based on the score
   playAudioCue(5);
   delay(1200);
-  playAudioCue(counter + 6);
-  delay(1000);
+  playAudioCue(counter+6);
+  delay(1000); 
+}
 }
 
 void playAudioCue(int trackNumber)
@@ -126,10 +122,8 @@ void playAudioCue(int trackNumber)
 bool sawTask(int timelimit)
 {
   unsigned long timer = millis();
-  while (millis() - timer < timelimit)
-  {
-    if (digitalRead(lightSensorPin) == LOW)
-    {
+  while (millis() - timer < timelimit) {
+    if (digitalRead(lightSensorPin) == LOW) {
       return true;
     }
   }
@@ -142,21 +136,15 @@ bool screwdriverTask(int timelimit)
   int encoderPosition = 0;
   int lastEncoderPinA = LOW;
 
-  while (millis() - timer < timelimit)
-  {
+  while (millis() - timer < timelimit) {
     int currentEncoderPinA = digitalRead(encoderPinA);
-    if (currentEncoderPinA != lastEncoderPinA && currentEncoderPinA == HIGH)
-    {
-      if (digitalRead(encoderPinB) != currentEncoderPinA)
-      {
+    if (currentEncoderPinA != lastEncoderPinA && currentEncoderPinA == HIGH) {
+      if (digitalRead(encoderPinB) != currentEncoderPinA) {
         encoderPosition++;
-      }
-      else
-      {
+      } else {
         encoderPosition--;
       }
-      if (encoderPosition >= 10)
-      {
+      if (encoderPosition >= 4) {
         return true;
       }
     }
@@ -168,10 +156,8 @@ bool screwdriverTask(int timelimit)
 bool hammerTask(int timelimit)
 {
   unsigned long timer = millis();
-  while (millis() - timer < timelimit)
-  {
-    if (digitalRead(hammerButton) == HIGH)
-    {
+  while (millis() - timer < timelimit) {
+    if (digitalRead(hammerButton) == HIGH) {
       return true;
     }
   }
